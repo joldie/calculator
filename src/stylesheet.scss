@@ -1,0 +1,61 @@
+$primary-text-color: black;
+$alt-text-color: white;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#root {
+  height: 100vh;
+  min-width: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calculator {
+  background-color: gray;
+  width: 320px;
+  height: 520px;
+  display: grid;
+  grid-template-rows: 1.5fr 5fr;
+  grid-template-areas: "screen" "buttons";
+  .screen {
+    grid-area: screen;
+    text-align: right;
+    display: grid;
+    grid-template-rows: 0.5fr 1fr;
+    grid-template-areas: "formula-display" "display";
+    #formula-display {
+      grid-area: formula-display;
+      background-color: darkblue;
+      color: $alt-text-color;
+    }
+    #display {
+      grid-area: display;
+      background-color: blue;
+      color: $alt-text-color;
+    }
+  }
+  .buttons {
+    grid-area: buttons;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+    grid-template-areas: "clear plus-minus percentage divide" "seven eight nine multiply" "four five six subtract" "one two three add" "zero zero decimal equals";
+    button {
+      color: $primary-text-color;
+    }
+    .button-left {
+      background-color: lightgray;
+    }
+    .button-right {
+      background-color: orange;
+    }
+    #zero {
+      grid-area: zero;
+      text-align: left;
+    }
+  }
+}
