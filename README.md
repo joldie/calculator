@@ -1,6 +1,6 @@
 # Calculator
 
-Javascript Calculator project for [freeCodeCamp](https://www.freecodecamp.org/) course.
+Basic calculator app, written in React, emulating the built-in Mac OS X program.
 
 ## Description
 

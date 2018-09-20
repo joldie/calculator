@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css?family=Raleway');
+$fonts: 'Raleway',
+sans-serif;
 $primary-text-color: black;
 $alt-text-color: white;
 * {
@@ -9,33 +12,62 @@ $alt-text-color: white;
 #root {
   height: 100vh;
   min-width: 320px;
+  font-family: $fonts;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .calculator {
-  background-color: gray;
   width: 320px;
-  height: 520px;
+  height: 520px; //border: 1px solid white;
+  //border-radius: 5px;
   display: grid;
   grid-template-rows: 1.5fr 5fr;
   grid-template-areas: "screen" "buttons";
   .screen {
     grid-area: screen;
     text-align: right;
+    color: $alt-text-color;
+    font-weight: 100;
+    background-color: #34516E;
+    outline: 1px solid gray;
+    border: none;
     display: grid;
-    grid-template-rows: 0.5fr 1fr;
-    grid-template-areas: "formula-display" "display";
-    #formula-display {
-      grid-area: formula-display;
-      background-color: darkblue;
-      color: $alt-text-color;
+    grid-template-rows: 0.3fr 0.9fr;
+    grid-template-areas: "upper-screen" "lower-screen";
+    #upper-screen {
+      grid-area: upper-screen;
+      padding: 8px 8px 0 8px;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      .title-bar-button {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+      }
+      #red-button {
+        margin-right: 8px;
+        background-color: #FF5651;
+      }
+      #yellow-button {
+        margin-right: 8px;
+        background-color: #FFBF3B;
+      }
+      #green-button {
+        background-color: #1AD44C;
+      }
+      #formula-display {
+        font-size: 18px;
+        padding-right: 10px;
+      }
     }
     #display {
-      grid-area: display;
-      background-color: blue;
-      color: $alt-text-color;
+      grid-area: lower-screen;
+      font-size: 70px;
+      padding-right: 15px;
     }
   }
   .buttons {
@@ -45,17 +77,23 @@ $alt-text-color: white;
     grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
     grid-template-areas: "clear plus-minus percentage divide" "seven eight nine multiply" "four five six subtract" "one two three add" "zero zero decimal equals";
     button {
+      outline: 1px solid #979797;
+      border: none;
       color: $primary-text-color;
+      font-size: 35px;
+      font-weight: 100;
     }
     .button-left {
-      background-color: lightgray;
+      background-color: #DFDFDF;
     }
     .button-right {
-      background-color: orange;
+      background-color: #FA9039;
+      color: $alt-text-color;
     }
     #zero {
       grid-area: zero;
-      text-align: left;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
     }
   }
 }
