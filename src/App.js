@@ -2,7 +2,8 @@ import React from 'react';
 import './stylesheet.css';
 
 // TODO:
-// - Enforce max length of inputs:
+// - Bug: Adding decimal point to negative value doesn't work in formula screen: e.g. (-123).45 
+// - Enforce max length of inputs (flash warning to user, ignore further input):
 //     const maxIndividualValueLength = 10 (for example)
 //     const maxFormulaLength = 50 (for example)
 // - Reduce font size as input length grows, so that screen must not resize
@@ -13,7 +14,7 @@ class Calculator extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            currentValue: '0',  // Save as string, not number, so can also display operators, etc.
+            currentValue: '0',  // Save as string, not number, so can easily append digits
             currentFormula: ''
         }
         this.handleClear = this.handleClear.bind(this);
@@ -31,8 +32,7 @@ class Calculator extends React.Component {
     }
 
     handleNumbers(e) {
-        // Check if input too long. If so -> flash warning and ignore input
-        // ...
+        // Concatenate new digits on end of current value and formula
         this.setState({
             currentValue:
                 this.state.currentValue === '0' ?
@@ -45,32 +45,73 @@ class Calculator extends React.Component {
 
     handleDecimal(e) {
         this.setState({
-            // If last digit a decimal point, ignore.
-            // Otherwise, append to end of current value and formula
-            // ...
-            // If before any other numbers, add leading zero
-            // ...
+            // If current value already includes a decimal point, ignore input.
+            // Otherwise, concatenate it on the end.
+            currentValue:
+                /\./g.test(this.state.currentValue) ?
+                    this.state.currentValue : this.state.currentValue + ".",
+            currentFormula:
+                this.state.currentValue === '0' ?
+                    this.state.currentFormula + '0.' :
+                    /\./g.test(this.state.currentValue) ?
+                        this.state.currentFormula : this.state.currentFormula + "."
         });
     }
 
     handleOperators(e) {
-        this.setState({
-            // If plus-minus, invert sign of current value
+        let currentValue, currentFormula;
+        // If calculation result currently shown, clear old formula and start
+        // calculating again with previous result value.
+        if (/=/g.test(this.state.currentFormula)) {
+            currentValue = String(this.state.currentValue);
+            currentFormula = String(this.state.currentValue);
+        } else {
+            currentValue = this.state.currentValue;
+            currentFormula = this.state.currentFormula;
+        }
+        if (e.target.value === '±') {
+            // Only negate non-zero values
+            if (currentValue !== '0') {
+                // Find current number in formula and split formula into start and
+                // end sections for later processing
+                let regexpResult = /\(?-?[0-9.]+\)?$/.exec(currentFormula);
+                let formulaStart = currentFormula.substr(0, regexpResult.index);
+                let formulaEnd = regexpResult[0];
+                this.setState({
+                    // Negate current numeric value
+                    currentValue:
+                        eval(currentValue * -1),
+                    currentFormula:
+                        formulaEnd.substr(0, 2) === '(-' && formulaEnd.slice(-1) === ')' ?
+                            formulaStart + formulaEnd.substring(2, formulaEnd.length - 1) :
+                            formulaStart + '(-' + formulaEnd + ')'
+                });
+            }
+        } else if (e.target.value === '%') {
             // ...
-            // Else if percentage, divide current value by 100
-            // ...
-            // Else, deal with 4 standard math operators
-            // ...
-        });
+        } else {
+            this.setState({
+                currentFormula:
+                    currentFormula + e.target.value,
+                currentValue:
+                    '0'
+            });
+        }
     }
 
     handleEquals(e) {
-        this.setState({
-            // If last button was also an equals, ignore input
-            // ...
+        // If calculation result currently shown, ignore further clicks on equals button
+        if (!/=/g.test(this.state.currentFormula)) {
             // Otherwise, evaluate expression in current formula field and display result
-            // ...
-        });
+            let formula = this.state.currentFormula;
+            // Replace math symbols with JavaScript math operators, where necessary
+            formula = formula.replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
+            let result = eval(formula);
+            this.setState({
+                currentValue: result,
+                currentFormula: this.state.currentFormula + "=" + result
+            });
+        }
     }
 
     render() {
@@ -119,9 +160,9 @@ class Buttons extends React.Component {
         return (
             <div className="buttons">
                 <button id="clear" className="button-left" value="AC" onClick={this.props.clear}>AC</button>
-                <button id="plus-minus" className="button-left" value="⁺∕₋" onClick={this.props.operator}>⁺∕₋</button>
+                <button id="plus-minus" className="button-left" value="±" onClick={this.props.operator}>⁺∕₋</button>
                 <button id="percentage" className="button-left" value="%" onClick={this.props.operator}>%</button>
-                <button id="divide" className="button-right" value="÷">÷</button>
+                <button id="divide" className="button-right" value="÷" onClick={this.props.operator}>÷</button>
                 <button id="seven" className="button-left" value="7" onClick={this.props.number}>7</button>
                 <button id="eight" className="button-left" value="8" onClick={this.props.number}>8</button>
                 <button id="nine" className="button-left" value="9" onClick={this.props.number}>9</button>
