@@ -1,6 +1,6 @@
 # Calculator
 
-Basic calculator app, written in React, emulating the built-in Mac OS X program.
+Basic calculator app, written in React. Design based on the built-in Mac OS X program.
 
 ## Description
 

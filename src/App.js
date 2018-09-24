@@ -2,7 +2,8 @@ import React from 'react';
 import './stylesheet.css';
 
 // TODO:
-// - Bug: Adding decimal point to negative value doesn't work in formula screen: e.g. (-123).45 
+// - Need to deal with Infinity output
+// - Implement keyboard binding to buttons
 // - Enforce max length of inputs (flash warning to user, ignore further input):
 //     const maxIndividualValueLength = 10 (for example)
 //     const maxFormulaLength = 50 (for example)
@@ -20,9 +21,30 @@ class Calculator extends React.Component {
         this.handleClear = this.handleClear.bind(this);
         this.handleNumbers = this.handleNumbers.bind(this);
         this.handleDecimal = this.handleDecimal.bind(this);
-        this.handleOperators = this.handleOperators.bind(this);
+        this.handlePrimaryOperators = this.handlePrimaryOperators.bind(this);
+        this.handleSecondaryOperators = this.handleSecondaryOperators.bind(this);
         this.handleEquals = this.handleEquals.bind(this);
     }
+
+    getFormulaStart = () => {
+        let currentFormula = this.state.currentFormula;
+        let regexpResult = /\(?[0-9.e-]+\)?$/.exec(currentFormula);
+        if (regexpResult === null) {
+            return '';
+        } else {
+            return currentFormula.substr(0, regexpResult.index);
+        }
+    };
+
+    getFormulaEnd = () => {
+        let currentFormula = this.state.currentFormula;
+        let regexpResult = /\(?[0-9.e-]+\)?$/.exec(currentFormula);
+        if (regexpResult === null) {
+            return '';
+        } else {
+            return regexpResult[0];
+        }
+    };
 
     handleClear(e) {
         this.setState({
@@ -32,64 +54,74 @@ class Calculator extends React.Component {
     }
 
     handleNumbers(e) {
-        // Concatenate new digits on end of current value and formula
-        this.setState({
-            currentValue:
-                this.state.currentValue === '0' ?
-                    e.target.value : this.state.currentValue + e.target.value,
-            currentFormula:
-                this.state.currentValue === '0' && e.target.value === '0' ?
-                    this.state.currentFormula : this.state.currentFormula + e.target.value
-        });
+        // If calculation result currently displayed, clicking a number starts a new formula
+        if (/=/g.test(this.state.currentFormula)) {
+            this.setState({
+                currentValue: e.target.value,
+                currentFormula: e.target.value
+            });
+        } else {
+            // Otherwise, concatenate new digits on end of current value and formula
+            this.setState({
+                currentValue:
+                    this.state.currentValue === '0' ?
+                        e.target.value : this.state.currentValue + e.target.value,
+                currentFormula:
+                    this.state.currentValue === '0' && e.target.value === '0' ?
+                        this.getFormulaEnd() === '' ?
+                            this.state.currentFormula + '0' :
+                            this.state.currentFormula :
+                        this.getFormulaEnd()[0] === '(' ?
+                            this.state.currentFormula.replace(/\)$/, e.target.value + ')') :
+                            this.state.currentFormula + e.target.value
+            });
+        }
     }
 
     handleDecimal(e) {
-        this.setState({
-            // If current value already includes a decimal point, ignore input.
-            // Otherwise, concatenate it on the end.
-            currentValue:
-                /\./g.test(this.state.currentValue) ?
-                    this.state.currentValue : this.state.currentValue + ".",
-            currentFormula:
-                this.state.currentValue === '0' ?
-                    this.state.currentFormula + '0.' :
-                    /\./g.test(this.state.currentValue) ?
-                        this.state.currentFormula : this.state.currentFormula + "."
-        });
+        // If exponential number (e.g. 1e-5) showing, ignore decimal button input
+        if (String(this.state.currentValue).indexOf('e') === -1) {
+            // If calculation result currently displayed, clicking decimal starts a new formula
+            if (/=/g.test(this.state.currentFormula)) {
+                this.setState({
+                    currentValue: '0.',
+                    currentFormula: '0.'
+                });
+            } else {
+                this.setState({
+                    // If current value already includes a decimal point, ignore input.
+                    // Otherwise, concatenate it on the end.
+                    currentValue:
+                        /\./g.test(this.state.currentValue) ?
+                            this.state.currentValue : this.state.currentValue + ".",
+                    currentFormula:
+                        this.state.currentValue === '0' ?
+                            this.state.currentFormula + '0.' :
+                            /\./g.test(this.state.currentValue) ?
+                                this.state.currentFormula :
+                                this.getFormulaEnd()[0] === '(' ?
+                                    this.state.currentFormula.replace(/\)$/, '.)') :
+                                    this.state.currentFormula + "."
+                });
+            }
+        }
     }
 
-    handleOperators(e) {
-        let currentValue, currentFormula;
+    handlePrimaryOperators(e) {
+        let currentFormula;
         // If calculation result currently shown, clear old formula and start
         // calculating again with previous result value.
         if (/=/g.test(this.state.currentFormula)) {
-            currentValue = String(this.state.currentValue);
-            currentFormula = String(this.state.currentValue);
+            if (/^-/.test(String(this.state.currentValue))) {
+                currentFormula = '(' + String(this.state.currentValue) + ')';
+            } else {
+                currentFormula = String(this.state.currentValue);
+            }
         } else {
-            currentValue = this.state.currentValue;
             currentFormula = this.state.currentFormula;
         }
-        if (e.target.value === '±') {
-            // Only negate non-zero values
-            if (currentValue !== '0') {
-                // Find current number in formula and split formula into start and
-                // end sections for later processing
-                let regexpResult = /\(?-?[0-9.]+\)?$/.exec(currentFormula);
-                let formulaStart = currentFormula.substr(0, regexpResult.index);
-                let formulaEnd = regexpResult[0];
-                this.setState({
-                    // Negate current numeric value
-                    currentValue:
-                        eval(currentValue * -1),
-                    currentFormula:
-                        formulaEnd.substr(0, 2) === '(-' && formulaEnd.slice(-1) === ')' ?
-                            formulaStart + formulaEnd.substring(2, formulaEnd.length - 1) :
-                            formulaStart + '(-' + formulaEnd + ')'
-                });
-            }
-        } else if (e.target.value === '%') {
-            // ...
-        } else {
+        // Only add new operator onto end of formula if none yet there
+        if (this.getFormulaEnd() !== '') {
             this.setState({
                 currentFormula:
                     currentFormula + e.target.value,
@@ -99,17 +131,59 @@ class Calculator extends React.Component {
         }
     }
 
+    handleSecondaryOperators(e) {
+        // Find current number in formula and split formula into start and
+        // end sections for later processing
+        let formulaStart = this.getFormulaStart();
+        let formulaEnd = this.getFormulaEnd();
+        // If calculation result currently displayed, clicking a secondary operator
+        // applies operation to result and clears formula
+        if (/=/g.test(this.state.currentFormula)) {
+            formulaStart = '';
+        }
+        if (e.target.value === '±') {
+            // Only negate non-zero values
+            if (this.state.currentValue !== '0' && this.state.currentValue !== '0.') {
+                this.setState({
+                    // Negate current numeric value
+                    currentValue:
+                        eval(this.state.currentValue * -1),
+                    currentFormula:
+                        // Checks if current value is already negative
+                        /\([0-9.e-]+\)$/.test(formulaEnd) ?
+                            formulaStart + formulaEnd.substring(2, formulaEnd.length - 1) :
+                            formulaStart + '(-' + formulaEnd + ')'
+                });
+            }
+        } else if (e.target.value === '%') {
+            // Only negate non-zero values
+            if (this.state.currentValue !== '0' && this.state.currentValue !== '0.') {
+                let result = Math.round(1000000000000 * eval(this.state.currentValue / 100)) / 1000000000000;
+                this.setState({
+                    // Divide current numeric value by 100
+                    currentValue:
+                        result,
+                    currentFormula:
+                        formulaStart + formulaEnd.replace(/[0-9.e-]+/, result)
+                });
+            }
+        }
+    }
+
     handleEquals(e) {
-        // If calculation result currently shown, ignore further clicks on equals button
-        if (!/=/g.test(this.state.currentFormula)) {
+        // If calculation result currently shown or formula is incomplete (i.e.
+        // an operator on end), ignore click on equals button
+        if (!/=/g.test(this.state.currentFormula) && this.getFormulaEnd() !== '') {
             // Otherwise, evaluate expression in current formula field and display result
             let formula = this.state.currentFormula;
             // Replace math symbols with JavaScript math operators, where necessary
             formula = formula.replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
-            let result = eval(formula);
+            let result = Math.round(1000000000000 * eval(formula)) / 1000000000000;
             this.setState({
                 currentValue: result,
-                currentFormula: this.state.currentFormula + "=" + result
+                currentFormula: /^-/.test(result) ?
+                    this.state.currentFormula + "=(" + result + ')' :
+                    this.state.currentFormula + "=" + result
             });
         }
     }
@@ -122,7 +196,8 @@ class Calculator extends React.Component {
                 <Buttons clear={this.handleClear}
                     number={this.handleNumbers}
                     decimal={this.handleDecimal}
-                    operator={this.handleOperators}
+                    operator1={this.handlePrimaryOperators}
+                    operator2={this.handleSecondaryOperators}
                     equals={this.handleEquals} />
             </div>
         );
@@ -160,21 +235,21 @@ class Buttons extends React.Component {
         return (
             <div className="buttons">
                 <button id="clear" className="button-left" value="AC" onClick={this.props.clear}>AC</button>
-                <button id="plus-minus" className="button-left" value="±" onClick={this.props.operator}>⁺∕₋</button>
-                <button id="percentage" className="button-left" value="%" onClick={this.props.operator}>%</button>
-                <button id="divide" className="button-right" value="÷" onClick={this.props.operator}>÷</button>
+                <button id="plus-minus" className="button-left" value="±" onClick={this.props.operator2}>⁺∕₋</button>
+                <button id="percentage" className="button-left" value="%" onClick={this.props.operator2}>%</button>
+                <button id="divide" className="button-right" value="÷" onClick={this.props.operator1}>÷</button>
                 <button id="seven" className="button-left" value="7" onClick={this.props.number}>7</button>
                 <button id="eight" className="button-left" value="8" onClick={this.props.number}>8</button>
                 <button id="nine" className="button-left" value="9" onClick={this.props.number}>9</button>
-                <button id="multiply" className="button-right" value="×" onClick={this.props.operator}>×</button>
+                <button id="multiply" className="button-right" value="×" onClick={this.props.operator1}>×</button>
                 <button id="four" className="button-left" value="4" onClick={this.props.number}>4</button>
                 <button id="five" className="button-left" value="5" onClick={this.props.number}>5</button>
                 <button id="six" className="button-left" value="6" onClick={this.props.number}>6</button>
-                <button id="subtract" className="button-right" value="−" onClick={this.props.operator}>−</button>
+                <button id="subtract" className="button-right" value="−" onClick={this.props.operator1}>−</button>
                 <button id="one" className="button-left" value="1" onClick={this.props.number}>1</button>
                 <button id="two" className="button-left" value="2" onClick={this.props.number}>2</button>
                 <button id="three" className="button-left" value="3" onClick={this.props.number}>3</button>
-                <button id="add" className="button-right" value="+" onClick={this.props.operator}>+</button>
+                <button id="add" className="button-right" value="+" onClick={this.props.operator1}>+</button>
                 <button id="zero" className="button-left" value="0" onClick={this.props.number}>
                     <div id="zero-label">0</div>
                 </button>
