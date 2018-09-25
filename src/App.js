@@ -2,7 +2,6 @@ import React from 'react';
 import './stylesheet.css';
 
 // TODO:
-// - Check comments after changing state variable definitions
 // - Need to deal with Infinity output
 // - Implement keyboard binding to buttons
 // - Enforce max length of inputs (flash warning to user, ignore further input):
@@ -27,25 +26,12 @@ class Calculator extends React.Component {
         this.handleEquals = this.handleEquals.bind(this);
     }
 
-    /*getFormulaStart = () => {
-        let currentFormula = this.state.currentFormula;
-        let regexpResult = /\(?[0-9.e-]+\)?$/.exec(currentFormula);
-        if (regexpResult === null) {
-            return '';
-        } else {
-            return currentFormula.substr(0, regexpResult.index);
-        }
-    };
-
-    getFormulaEnd = () => {
-        let currentFormula = this.state.currentFormula;
-        let regexpResult = /\(?[0-9.e-]+\)?$/.exec(currentFormula);
-        if (regexpResult === null) {
-            return '';
-        } else {
-            return regexpResult[0];
-        }
-    };*/
+    evaluateMath(expr) {
+        // Replace math symbols with JavaScript math operators, where necessary
+        expr = String(expr).replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
+        // Evaluate and round result
+        return Math.round(1000000000000 * eval(expr)) / 1000000000000;
+    }
 
     handleClear(e) {
         this.setState({
@@ -59,23 +45,14 @@ class Calculator extends React.Component {
         if (/=/g.test(this.state.currentFormula)) {
             this.setState({
                 currentValue: e.target.value,
-                currentFormula: e.target.value
+                currentFormula: ''
             });
         } else {
-            // Otherwise, concatenate new digits on end of current value and formula
+            // Otherwise, concatenate new digits on end of current value
             this.setState({
                 currentValue:
                     this.state.currentValue === '0' ?
                         e.target.value : this.state.currentValue + e.target.value,
-                /*currentFormula:
-                    this.state.currentFormula + e.target.value*/
-                /*this.state.currentValue === '0' && e.target.value === '0' ?
-                    this.getFormulaEnd() === '' ?
-                        this.state.currentFormula + '0' :
-                        this.state.currentFormula :
-                    this.getFormulaEnd()[0] === '(' ?
-                        this.state.currentFormula.replace(/\)$/, e.target.value + ')') :
-                        this.state.currentFormula + e.target.value*/
             });
         }
     }
@@ -87,7 +64,7 @@ class Calculator extends React.Component {
             if (/=/g.test(this.state.currentFormula)) {
                 this.setState({
                     currentValue: '0.',
-                    currentFormula: '0.'
+                    currentFormula: ''
                 });
             } else {
                 this.setState({
@@ -95,15 +72,10 @@ class Calculator extends React.Component {
                     // Otherwise, concatenate it on the end.
                     currentValue:
                         /\./g.test(this.state.currentValue) ?
-                            this.state.currentValue : this.state.currentValue + ".",
-                    currentFormula:
-                        this.state.currentValue === '0' ?
-                            this.state.currentFormula + '0.' :
-                            /\./g.test(this.state.currentValue) ?
-                                this.state.currentFormula :
-                                this.getFormulaEnd()[0] === '(' ?
-                                    this.state.currentFormula.replace(/\)$/, '.)') :
-                                    this.state.currentFormula + "."
+                            this.state.currentValue :
+                            this.state.currentValue === '' ?
+                                this.state.currentValue + "0." : // Add leading zero, e.g. "0.1" instead of ".1"
+                                this.state.currentValue + "."
                 });
             }
         }
@@ -114,59 +86,43 @@ class Calculator extends React.Component {
         // If calculation result currently shown, clear old formula and start
         // calculating again with previous result value.
         if (/=/g.test(this.state.currentFormula)) {
-            if (/^-/.test(String(this.state.currentValue))) {
-                currentFormula = '(' + String(this.state.currentValue) + ')';
-            } else {
-                currentFormula = String(this.state.currentValue);
-            }
+            currentFormula = '';
         } else {
             currentFormula = this.state.currentFormula;
         }
         // Only add new operator onto end of formula if none yet there
-        if (this.getFormulaEnd() !== '') {
+        if (this.state.currentValue !== '') {
             this.setState({
                 currentFormula:
-                    currentFormula + e.target.value,
+                    String(this.state.currentValue)[0] === '-' ?
+                        currentFormula + '(' + this.state.currentValue + ')' + e.target.value :
+                        currentFormula + this.state.currentValue + e.target.value,
                 currentValue:
-                    '0'
+                    ''
             });
         }
     }
 
     handleSecondaryOperators(e) {
-        // Find current number in formula and split formula into start and
-        // end sections for later processing
-        let formulaStart = this.getFormulaStart();
-        let formulaEnd = this.getFormulaEnd();
         // If calculation result currently displayed, clicking a secondary operator
         // applies operation to result and clears formula
         if (/=/g.test(this.state.currentFormula)) {
-            formulaStart = '';
+            this.setState({
+                currentFormula: ''
+            });
         }
-        if (e.target.value === '±') {
-            // Only negate non-zero values
-            if (this.state.currentValue !== '0' && this.state.currentValue !== '0.') {
+        // Only perform operations on non-zero values
+        if (this.state.currentValue !== '' && eval(this.state.currentValue) !== 0) {
+            if (e.target.value === '±') {
                 this.setState({
                     // Negate current numeric value
-                    currentValue:
-                        eval(this.state.currentValue * -1),
-                    currentFormula:
-                        // Checks if current value is already negative
-                        /\([0-9.e-]+\)$/.test(formulaEnd) ?
-                            formulaStart + formulaEnd.substring(2, formulaEnd.length - 1) :
-                            formulaStart + '(-' + formulaEnd + ')'
+                    currentValue: eval(this.state.currentValue * -1),
                 });
-            }
-        } else if (e.target.value === '%') {
-            // Only negate non-zero values
-            if (this.state.currentValue !== '0' && this.state.currentValue !== '0.') {
-                let result = Math.round(1000000000000 * eval(this.state.currentValue / 100)) / 1000000000000;
+            } else if (e.target.value === '%') {
+                let result = this.evaluateMath(this.state.currentValue / 100);
                 this.setState({
                     // Divide current numeric value by 100
-                    currentValue:
-                        result,
-                    currentFormula:
-                        formulaStart + formulaEnd.replace(/[0-9.e-]+/, result)
+                    currentValue: result
                 });
             }
         }
@@ -175,17 +131,16 @@ class Calculator extends React.Component {
     handleEquals(e) {
         // If calculation result currently shown or formula is incomplete (i.e.
         // an operator on end), ignore click on equals button
-        if (!/=/g.test(this.state.currentFormula) && this.getFormulaEnd() !== '') {
+        if ((!/=/g.test(this.state.currentFormula)) && this.state.currentValue !== '') {
             // Otherwise, evaluate expression in current formula field and display result
-            let formula = this.state.currentFormula;
-            // Replace math symbols with JavaScript math operators, where necessary
-            formula = formula.replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
-            let result = Math.round(1000000000000 * eval(formula)) / 1000000000000;
+            let formula;
+            String(this.state.currentValue)[0] === '-' ?
+                formula = this.state.currentFormula + '(' + this.state.currentValue + ')' :
+                formula = this.state.currentFormula + this.state.currentValue
+            let result = this.evaluateMath(formula);
             this.setState({
                 currentValue: result,
-                currentFormula: /^-/.test(result) ?
-                    this.state.currentFormula + "=(" + result + ')' :
-                    this.state.currentFormula + "=" + result
+                currentFormula: formula + '='
             });
         }
     }
@@ -199,7 +154,7 @@ class Calculator extends React.Component {
             displayValue = this.state.currentValue;
         // Display negative numbers in paranthese in formula screen for clarity
         String(this.state.currentValue)[0] === '-' ?
-            displayFormula = '(' + this.state.currentFormula + ')' :
+            displayFormula = this.state.currentFormula + '(' + this.state.currentValue + ')' :
             displayFormula = this.state.currentFormula + this.state.currentValue;
 
         return (
