@@ -31,12 +31,8 @@ class Calculator extends React.Component {
         expr = String(expr).replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-").replace('∞', 'Infinity');
         // Evaluate and round result
         let result = Math.round(1000000000000 * eval(expr)) / 1000000000000;
-        if (String(result).indexOf('Infinity') === -1) {
-            return result;
-        } else {
-            result = String(result).replace('Infinity', '∞');
-            return result;
-        }
+        // Return result, replacing Infinity text to math symbol
+        return String(result).replace('Infinity', '∞');
     }
 
     handleClear(e) {
@@ -86,7 +82,7 @@ class Calculator extends React.Component {
                     /\./g.test(this.state.currentValue) ?
                         this.state.currentValue :
                         this.state.currentValue === '' ?
-                            this.state.currentValue + "0." : // Add leading zero, e.g. "0.1" instead of ".1"
+                            this.state.currentValue + "0." : // Add leading zero, e.g. display "0.1" instead of ".1"
                             this.state.currentValue + "."
             });
         }
