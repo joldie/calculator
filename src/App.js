@@ -2,6 +2,7 @@ import React from 'react';
 import './stylesheet.css';
 
 // TODO:
+// - Check comments after changing state variable definitions
 // - Need to deal with Infinity output
 // - Implement keyboard binding to buttons
 // - Enforce max length of inputs (flash warning to user, ignore further input):
@@ -15,7 +16,7 @@ class Calculator extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            currentValue: '0',  // Save as string, not number, so can easily append digits
+            currentValue: '',  // Save as string, not number, so can easily append digits
             currentFormula: ''
         }
         this.handleClear = this.handleClear.bind(this);
@@ -26,7 +27,7 @@ class Calculator extends React.Component {
         this.handleEquals = this.handleEquals.bind(this);
     }
 
-    getFormulaStart = () => {
+    /*getFormulaStart = () => {
         let currentFormula = this.state.currentFormula;
         let regexpResult = /\(?[0-9.e-]+\)?$/.exec(currentFormula);
         if (regexpResult === null) {
@@ -44,11 +45,11 @@ class Calculator extends React.Component {
         } else {
             return regexpResult[0];
         }
-    };
+    };*/
 
     handleClear(e) {
         this.setState({
-            currentValue: '0',
+            currentValue: '',
             currentFormula: ''
         });
     }
@@ -66,14 +67,15 @@ class Calculator extends React.Component {
                 currentValue:
                     this.state.currentValue === '0' ?
                         e.target.value : this.state.currentValue + e.target.value,
-                currentFormula:
-                    this.state.currentValue === '0' && e.target.value === '0' ?
-                        this.getFormulaEnd() === '' ?
-                            this.state.currentFormula + '0' :
-                            this.state.currentFormula :
-                        this.getFormulaEnd()[0] === '(' ?
-                            this.state.currentFormula.replace(/\)$/, e.target.value + ')') :
-                            this.state.currentFormula + e.target.value
+                /*currentFormula:
+                    this.state.currentFormula + e.target.value*/
+                /*this.state.currentValue === '0' && e.target.value === '0' ?
+                    this.getFormulaEnd() === '' ?
+                        this.state.currentFormula + '0' :
+                        this.state.currentFormula :
+                    this.getFormulaEnd()[0] === '(' ?
+                        this.state.currentFormula.replace(/\)$/, e.target.value + ')') :
+                        this.state.currentFormula + e.target.value*/
             });
         }
     }
@@ -189,10 +191,21 @@ class Calculator extends React.Component {
     }
 
     render() {
+
+        let displayValue, displayFormula;
+        // Until a number has been pressed, display a zero on the screen
+        this.state.currentValue === '' ?
+            displayValue = '0' :
+            displayValue = this.state.currentValue;
+        // Display negative numbers in paranthese in formula screen for clarity
+        String(this.state.currentValue)[0] === '-' ?
+            displayFormula = '(' + this.state.currentFormula + ')' :
+            displayFormula = this.state.currentFormula + this.state.currentValue;
+
         return (
             <div className="calculator">
-                <Screen currentFormula={this.state.currentFormula}
-                    currentValue={this.state.currentValue} />
+                <Screen currentFormula={displayFormula}
+                    currentValue={displayValue} />
                 <Buttons clear={this.handleClear}
                     number={this.handleNumbers}
                     decimal={this.handleDecimal}
