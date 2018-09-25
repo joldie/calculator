@@ -2,7 +2,6 @@ import React from 'react';
 import './stylesheet.css';
 
 // TODO:
-// - Need to deal with Infinity output
 // - Implement keyboard binding to buttons
 // - Enforce max length of inputs (flash warning to user, ignore further input):
 //     const maxIndividualValueLength = 10 (for example)
@@ -27,10 +26,17 @@ class Calculator extends React.Component {
     }
 
     evaluateMath(expr) {
+        console.log(expr);
         // Replace math symbols with JavaScript math operators, where necessary
-        expr = String(expr).replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
+        expr = String(expr).replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-").replace('∞', 'Infinity');
         // Evaluate and round result
-        return Math.round(1000000000000 * eval(expr)) / 1000000000000;
+        let result = Math.round(1000000000000 * eval(expr)) / 1000000000000;
+        if (String(result).indexOf('Infinity') === -1) {
+            return result;
+        } else {
+            result = String(result).replace('Infinity', '∞');
+            return result;
+        }
     }
 
     handleClear(e) {
@@ -47,8 +53,12 @@ class Calculator extends React.Component {
                 currentValue: e.target.value,
                 currentFormula: ''
             });
-        } else {
-            // Otherwise, concatenate new digits on end of current value
+        }
+        // Ignore input if current value is invalid (exponential, infinite, NaN)
+        else if (String(this.state.currentValue).indexOf('e') === -1 &&
+            String(this.state.currentValue).indexOf('∞') === -1 &&
+            String(this.state.currentValue).indexOf('NaN') === -1) {
+            // Otherwise, if current value not infinite, concatenate new digits on end
             this.setState({
                 currentValue:
                     this.state.currentValue === '0' ?
@@ -58,26 +68,27 @@ class Calculator extends React.Component {
     }
 
     handleDecimal(e) {
-        // If exponential number (e.g. 1e-5) showing, ignore decimal button input
-        if (String(this.state.currentValue).indexOf('e') === -1) {
-            // If calculation result currently displayed, clicking decimal starts a new formula
-            if (/=/g.test(this.state.currentFormula)) {
-                this.setState({
-                    currentValue: '0.',
-                    currentFormula: ''
-                });
-            } else {
-                this.setState({
-                    // If current value already includes a decimal point, ignore input.
-                    // Otherwise, concatenate it on the end.
-                    currentValue:
-                        /\./g.test(this.state.currentValue) ?
-                            this.state.currentValue :
-                            this.state.currentValue === '' ?
-                                this.state.currentValue + "0." : // Add leading zero, e.g. "0.1" instead of ".1"
-                                this.state.currentValue + "."
-                });
-            }
+        // If calculation result currently displayed, clicking decimal starts a new formula
+        if (/=/g.test(this.state.currentFormula)) {
+            this.setState({
+                currentValue: '0.',
+                currentFormula: ''
+            });
+        }
+        // Ignore input if current value is invalid (exponential, infinite, NaN)
+        else if (String(this.state.currentValue).indexOf('e') === -1 &&
+            String(this.state.currentValue).indexOf('∞') === -1 &&
+            String(this.state.currentValue).indexOf('NaN') === -1) {
+            this.setState({
+                // If current value already includes a decimal point, ignore input.
+                // Otherwise, concatenate it on the end.
+                currentValue:
+                    /\./g.test(this.state.currentValue) ?
+                        this.state.currentValue :
+                        this.state.currentValue === '' ?
+                            this.state.currentValue + "0." : // Add leading zero, e.g. "0.1" instead of ".1"
+                            this.state.currentValue + "."
+            });
         }
     }
 
@@ -112,18 +123,22 @@ class Calculator extends React.Component {
             });
         }
         // Only perform operations on non-zero values
-        if (this.state.currentValue !== '' && eval(this.state.currentValue) !== 0) {
+        if (this.state.currentValue !== '' && this.evaluateMath(this.state.currentValue) !== 0) {
             if (e.target.value === '±') {
                 this.setState({
                     // Negate current numeric value
-                    currentValue: eval(this.state.currentValue * -1),
+                    // String used for multiplication to cater for infinity value
+                    currentValue: this.evaluateMath(this.state.currentValue + ' * -1'),
                 });
             } else if (e.target.value === '%') {
-                let result = this.evaluateMath(this.state.currentValue / 100);
-                this.setState({
-                    // Divide current numeric value by 100
-                    currentValue: result
-                });
+                // Ignore infinite values
+                if (String(this.state.currentValue).indexOf('∞') === -1) {
+                    let result = this.evaluateMath(this.state.currentValue / 100);
+                    this.setState({
+                        // Divide current numeric value by 100
+                        currentValue: result
+                    });
+                }
             }
         }
     }
