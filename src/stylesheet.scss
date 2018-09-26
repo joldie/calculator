@@ -1,18 +1,16 @@
-@import url('https://fonts.googleapis.com/css?family=Raleway');
-$fonts: 'Raleway',
-sans-serif;
 $primary-text-color: black;
 $alt-text-color: white;
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: sans-serif;
+  font-weight: 100;
 }
 
 #root {
   height: 100vh;
   min-width: 320px;
-  font-family: $fonts;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,80 +18,106 @@ $alt-text-color: white;
 
 .calculator {
   width: 320px;
-  height: 520px; //border: 1px solid white;
-  //border-radius: 5px;
+  height: 520px;
   display: grid;
   grid-template-rows: 1.5fr 5fr;
   grid-template-areas: "screen" "buttons";
   .screen {
+    border: 1px solid #979797;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
     grid-area: screen;
     text-align: right;
     color: $alt-text-color;
-    font-weight: 100;
     background-color: #34516E;
-    outline: 1px solid gray;
     border: none;
     display: grid;
-    grid-template-rows: 0.3fr 0.9fr;
+    grid-template-rows: auto 80px;
     grid-template-areas: "upper-screen" "lower-screen";
     #upper-screen {
       grid-area: upper-screen;
       padding: 8px 8px 0 8px;
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      .title-bar-button {
-        display: inline-block;
-        width: 15px;
-        height: 15px;
-        border-radius: 50%;
-      }
-      #red-button {
-        margin-right: 8px;
-        background-color: #FF5651;
-      }
-      #yellow-button {
-        margin-right: 8px;
-        background-color: #FFBF3B;
-      }
-      #green-button {
-        background-color: #1AD44C;
+      max-width: 320px;
+      .title-bar-buttons {
+        display: block;
+        margin-bottom: 6px;
+        min-width: 60px;
+        max-width: 60px;
+        min-height: 16px;
+        max-height: 16px;
+        .title-bar-button {
+          display: inline-block;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          margin-right: 8px;
+        }
+        #red-button {
+          background-color: #FF5651;
+        }
+        #yellow-button {
+          background-color: #FFBF3B;
+        }
+        #green-button {
+          background-color: #1AD44C;
+        }
       }
       #formula-display {
-        font-size: 18px;
+        display: block;
         padding-right: 10px;
+        max-width: 320px;
+        font-weight: 300;
       }
     }
     #display {
       grid-area: lower-screen;
-      font-size: 70px;
-      padding-right: 15px;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: right;
+      max-width: 320px;
+      max-height: 90px;
+      .scaletext-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+      }
     }
   }
   .buttons {
+    border: 1px solid #979797;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top: none;
     grid-area: buttons;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
     grid-template-areas: "clear plus-minus percentage divide" "seven eight nine multiply" "four five six subtract" "one two three add" "zero zero decimal equals";
     button {
-      outline: 1px solid #979797;
-      border: none;
+      border: 1px solid #979797;
+      border-bottom: none;
       color: $primary-text-color;
       font-size: 35px;
-      font-weight: 100;
     }
     .button-left {
       background-color: #DFDFDF;
+      border-left: none;
     }
     .button-right {
       background-color: #FA9039;
       color: $alt-text-color;
+      border-left: none;
+      border-right: none;
     }
     #zero {
       grid-area: zero;
       display: grid;
       grid-template-columns: 1fr 1fr;
+      border-bottom-left-radius: 4px;
+    }
+    #equals {
+      border-bottom-right-radius: 4px;
     }
   }
 }

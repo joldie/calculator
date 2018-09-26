@@ -1,21 +1,25 @@
 import React from 'react';
+import ScaleText from "react-scale-text";
 import './stylesheet.css';
 
 // TODO:
 // - Implement keyboard binding to buttons
-// - Enforce max length of inputs (flash warning to user, ignore further input):
-//     const maxIndividualValueLength = 10 (for example)
-//     const maxFormulaLength = 50 (for example)
-// - Reduce font size as input length grows, so that screen must not resize
+// - Flash warning to user when max input length exceeded
 // - Implement a "C" clear button to clear current value, not just "AC",
 //     which clears all
+// - Setup tests for code (expected output from button presses, etc)
+
+// Maximum number of digits allowed in a single numeric value
+const MaxSignificantDigits = 10;
+// Maximum length of digits and symbols in formula to be evaluated
+const MaxFormulaLength = 80;
 
 class Calculator extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             currentValue: '',  // Save as string, not number, so can easily append digits
-            currentFormula: ''
+            currentFormula: '\u200B'
         }
         this.handleClear = this.handleClear.bind(this);
         this.handleNumbers = this.handleNumbers.bind(this);
@@ -28,9 +32,19 @@ class Calculator extends React.Component {
     evaluateMath(expr) {
         console.log(expr);
         // Replace math symbols with JavaScript math operators, where necessary
-        expr = String(expr).replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-").replace('∞', 'Infinity');
+        expr = String(expr).replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-").replace('∞', 'Infinity').replace(/[\u200B]/g, '');
+        console.log(expr);
         // Evaluate and round result
         let result = Math.round(1000000000000 * eval(expr)) / 1000000000000;
+        result = result.toPrecision(MaxSignificantDigits);
+        // Remove trailing zeroes in decimal values, ignoring exponential numbers,
+        // and decimal point itself, if necessary
+        if (result.indexOf('.') !== -1 && result.indexOf('e') === -1) {
+            result = result.replace(/0+$/, "");
+            if (result.slice(-1) === '.') {
+                result = result.slice(0, -1);
+            }
+        }
         // Return result, replacing Infinity text to math symbol
         return String(result).replace('Infinity', '∞');
     }
@@ -38,7 +52,7 @@ class Calculator extends React.Component {
     handleClear(e) {
         this.setState({
             currentValue: '',
-            currentFormula: ''
+            currentFormula: '\u200B'
         });
     }
 
@@ -47,13 +61,16 @@ class Calculator extends React.Component {
         if (/=/g.test(this.state.currentFormula)) {
             this.setState({
                 currentValue: e.target.value,
-                currentFormula: ''
+                currentFormula: '\u200B'
             });
         }
-        // Ignore input if current value is invalid (exponential, infinite, NaN)
+        // Ignore input if current value is invalid (exponential, infinite, NaN or too long)
+        // or total length of formula too long
         else if (String(this.state.currentValue).indexOf('e') === -1 &&
             String(this.state.currentValue).indexOf('∞') === -1 &&
-            String(this.state.currentValue).indexOf('NaN') === -1) {
+            String(this.state.currentValue).indexOf('NaN') === -1 &&
+            String(this.state.currentValue).replace(/[^0-9]/g, "").length < MaxSignificantDigits &&
+            String(this.state.currentValue).length + String(this.state.currentFormula).length < MaxFormulaLength) {
             // Otherwise, if current value not infinite, concatenate new digits on end
             this.setState({
                 currentValue:
@@ -68,7 +85,7 @@ class Calculator extends React.Component {
         if (/=/g.test(this.state.currentFormula)) {
             this.setState({
                 currentValue: '0.',
-                currentFormula: ''
+                currentFormula: '\u200B'
             });
         }
         // Ignore input if current value is invalid (exponential, infinite, NaN)
@@ -93,7 +110,7 @@ class Calculator extends React.Component {
         // If calculation result currently shown, clear old formula and start
         // calculating again with previous result value.
         if (/=/g.test(this.state.currentFormula)) {
-            currentFormula = '';
+            currentFormula = '\u200B';
         } else {
             currentFormula = this.state.currentFormula;
         }
@@ -102,8 +119,8 @@ class Calculator extends React.Component {
             this.setState({
                 currentFormula:
                     String(this.state.currentValue)[0] === '-' ?
-                        currentFormula + '(' + this.state.currentValue + ')' + e.target.value :
-                        currentFormula + this.state.currentValue + e.target.value,
+                        currentFormula + '(' + this.state.currentValue + ')' + '\u200b' + e.target.value + '\u200b' :
+                        currentFormula + this.state.currentValue + '\u200b' + e.target.value + '\u200b',
                 currentValue:
                     ''
             });
@@ -115,7 +132,7 @@ class Calculator extends React.Component {
         // applies operation to result and clears formula
         if (/=/g.test(this.state.currentFormula)) {
             this.setState({
-                currentFormula: ''
+                currentFormula: '\u200B'
             });
         }
         // Only perform operations on non-zero values
@@ -151,7 +168,7 @@ class Calculator extends React.Component {
             let result = this.evaluateMath(formula);
             this.setState({
                 currentValue: result,
-                currentFormula: formula + '='
+                currentFormula: formula + '\u200b' + '=' + '\u200b'
             });
         }
     }
@@ -189,9 +206,13 @@ class Screen extends React.Component {
             <div className="screen">
                 <div id="upper-screen" className="display">
                     <TitleBarButtons />
-                    <div id="formula-display">{this.props.currentFormula}</div>
+                    <p id="formula-display">{this.props.currentFormula}</p>
                 </div>
-                <div id="display" className="display">{this.props.currentValue}</div>
+                <div id="display" className="display">
+                    <ScaleText>
+                        <p>{this.props.currentValue}</p>
+                    </ScaleText>
+                </div>
             </div>
         );
     }
@@ -200,7 +221,7 @@ class Screen extends React.Component {
 class TitleBarButtons extends React.Component {
     render() {
         return (
-            <div>
+            <div className="title-bar-buttons">
                 <div id="red-button" className="title-bar-button"></div>
                 <div id="yellow-button" className="title-bar-button"></div>
                 <div id="green-button" className="title-bar-button"></div>
