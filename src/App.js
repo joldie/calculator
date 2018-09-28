@@ -389,6 +389,7 @@ class Buttons extends React.Component {
             return (
                 <Button
                     id={buttonArray[i].id}
+                    key={i}
                     className={buttonArray[i].className}
                     value={buttonArray[i].value}
                     onClick={this.props[buttonArray[i].onClick]}
