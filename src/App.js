@@ -2,10 +2,6 @@ import React from 'react';
 import ScaleText from "react-scale-text";
 import './stylesheet.css';
 
-// TODO:
-// - Flash warning to user when max input length exceeded
-// - Setup tests for code (expected output from button presses, etc)
-
 // Maximum number of digits allowed in a single numeric value
 const MaxSignificantDigits = 10;
 // Maximum length of digits and symbols in formula to be evaluated
@@ -151,8 +147,11 @@ class Calculator extends React.Component {
         super(props);
         this.state = {
             currentValue: '',  // Save as string, not number, so can easily append digits
-            currentFormula: '\u200B' // Unicode zero-width whitespace character used throughout to enforce word breaks as well as correct div heights at start of new formula
+            previousValue: '', // Temporary store of value when error message flashes on screen
+            currentFormula: '\u200B', // Unicode zero-width whitespace character used throughout to enforce word breaks as well as correct div heights at start of new formula
+            previousFormula: '' // Temporary store of formula when error message flashes on screen
         }
+        this.maxDigitWarning = this.maxDigitWarning.bind(this);
         this.handleClear = this.handleClear.bind(this);
         this.handleNumbers = this.handleNumbers.bind(this);
         this.handleDecimal = this.handleDecimal.bind(this);
@@ -179,6 +178,19 @@ class Calculator extends React.Component {
         return String(result).replace('Infinity', '∞');
     }
 
+    maxDigitWarning() {
+        this.setState({
+            currentValue: 'Max Input Length',
+            previousValue: this.state.currentValue,
+            currentFormula: '',
+            previousFormula: this.state.currentFormula
+        });
+        setTimeout(() => this.setState({
+            currentValue: this.state.previousValue,
+            currentFormula: this.state.previousFormula
+        }), 1000);
+    }
+
     handleClear(e) {
         // Clear current value, if it isn't null
         if (this.state.currentValue !== '') {
@@ -202,13 +214,15 @@ class Calculator extends React.Component {
                 currentFormula: '\u200B'
             });
         }
-        // Ignore input if current value is invalid (exponential, infinite, NaN or too long)
-        // or total length of formula too long
+        // Flash warning if user input for single value or whole expression too long
+        else if (String(this.state.currentValue).replace(/[^0-9]/g, "").length >= MaxSignificantDigits ||
+            String(this.state.currentValue).length + String(this.state.currentFormula).length >= MaxFormulaLength) {
+            this.maxDigitWarning();
+        }
+        // Ignore input if current value is invalid (exponential, infinite, NaN)
         else if (String(this.state.currentValue).indexOf('e') === -1 &&
             String(this.state.currentValue).indexOf('∞') === -1 &&
-            String(this.state.currentValue).indexOf('NaN') === -1 &&
-            String(this.state.currentValue).replace(/[^0-9]/g, "").length < MaxSignificantDigits &&
-            String(this.state.currentValue).length + String(this.state.currentFormula).length < MaxFormulaLength) {
+            String(this.state.currentValue).indexOf('NaN') === -1) {
             // Otherwise, if current value not infinite, concatenate new digits on end
             this.setState({
                 currentValue:
