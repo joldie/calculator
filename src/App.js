@@ -3,7 +3,6 @@ import ScaleText from "react-scale-text";
 import './stylesheet.css';
 
 // TODO:
-// - Implement keyboard binding to buttons
 // - Flash warning to user when max input length exceeded
 // - Implement a "C" clear button to clear current value, not just "AC",
 //     which clears all
