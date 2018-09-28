@@ -1,10 +1,12 @@
 # Calculator
 
-Basic calculator app, written in React. Design based on the built-in Mac OS X program.
+Basic handheld calculator app, written in React JS.
 
 ## Description
 
 This is a small project with the main goal of improving my web development skills.
+
+Visual design based on the built-in Mac OS X program.
 
 Written in JS (React), HTML5 and CSS3 (Sass).
 

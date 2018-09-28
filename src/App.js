@@ -19,7 +19,7 @@ class Calculator extends React.Component {
         super(props);
         this.state = {
             currentValue: '',  // Save as string, not number, so can easily append digits
-            currentFormula: '\u200B'
+            currentFormula: '\u200B' // Unicode zero-width whitespace character used throughout to enforce word breaks as well as correct div heights at start of new formula
         }
         this.handleClear = this.handleClear.bind(this);
         this.handleNumbers = this.handleNumbers.bind(this);
