@@ -4,8 +4,6 @@ import './stylesheet.css';
 
 // TODO:
 // - Flash warning to user when max input length exceeded
-// - Implement a "C" clear button to clear current value, not just "AC",
-//     which clears all
 // - Setup tests for code (expected output from button presses, etc)
 
 // Maximum number of digits allowed in a single numeric value
@@ -182,10 +180,18 @@ class Calculator extends React.Component {
     }
 
     handleClear(e) {
-        this.setState({
-            currentValue: '',
-            currentFormula: '\u200B'
-        });
+        // Clear current value, if it isn't null
+        if (this.state.currentValue !== '') {
+            this.setState({
+                currentValue: ''
+            });
+        } else {
+            // Otherwise clear screen completely
+            this.setState({
+                currentValue: '',
+                currentFormula: '\u200B'
+            });
+        }
     }
 
     handleNumbers(e) {
@@ -326,7 +332,8 @@ class Calculator extends React.Component {
                     decimal={this.handleDecimal}
                     operator1={this.handlePrimaryOperators}
                     operator2={this.handleSecondaryOperators}
-                    equals={this.handleEquals} />
+                    equals={this.handleEquals}
+                    currentValue={this.state.currentValue} />
             </div>
         );
     }
@@ -378,7 +385,8 @@ class Buttons extends React.Component {
                     decimal={this.props.decimal}
                     operator1={this.props.operator1}
                     operator2={this.props.operator2}
-                    equals={this.props.equals} />
+                    equals={this.props.equals}
+                    currentValue={this.props.currentValue} />
             )
         });
         return (
@@ -409,6 +417,7 @@ class Button extends React.Component {
     render() {
         let display = this.props.value;
         if (display === "±") { display = "⁺∕₋" }
+        if (display === "AC" && this.props.currentValue !== "") { display = "C" }
         return (
             <button id={this.props.id}
                 className={this.props.className}
