@@ -13,6 +13,141 @@ import './stylesheet.css';
 const MaxSignificantDigits = 10;
 // Maximum length of digits and symbols in formula to be evaluated
 const MaxFormulaLength = 80;
+// List of data for each button on the calculator
+const buttonData = [{
+    id: "clear",
+    className: "button-left",
+    value: "AC",
+    onClick: "clear",
+    keyCode: 8,
+    shiftKey: false
+}, {
+    id: "plus-minus",
+    className: "button-left",
+    value: "±",
+    onClick: "operator2",
+    keyCode: 173,
+    shiftKey: true
+}, {
+    id: "percentage",
+    className: "button-left",
+    value: "%",
+    onClick: "operator2",
+    keyCode: 53,
+    shiftKey: true
+}, {
+    id: "divide",
+    className: "button-right",
+    value: "÷",
+    onClick: "operator1",
+    keyCode: 191,
+    shiftKey: false
+}, {
+    id: "seven",
+    className: "button-left",
+    value: "7",
+    onClick: "number",
+    keyCode: 55,
+    shiftKey: false
+}, {
+    id: "eight",
+    className: "button-left",
+    value: "8",
+    onClick: "number",
+    keyCode: 56,
+    shiftKey: false
+}, {
+    id: "nine",
+    className: "button-left",
+    value: "9",
+    onClick: "number",
+    keyCode: 57,
+    shiftKey: false
+}, {
+    id: "multiply",
+    className: "button-right",
+    value: "×",
+    onClick: "operator1",
+    keyCode: 56,
+    shiftKey: true
+}, {
+    id: "four",
+    className: "button-left",
+    value: "4",
+    onClick: "number",
+    keyCode: 52,
+    shiftKey: false
+}, {
+    id: "five",
+    className: "button-left",
+    value: "5",
+    onClick: "number",
+    keyCode: 53,
+    shiftKey: false
+}, {
+    id: "six",
+    className: "button-left",
+    value: "6",
+    onClick: "number",
+    keyCode: 54,
+    shiftKey: false
+}, {
+    id: "subtract",
+    className: "button-right",
+    value: "−",
+    onClick: "operator1",
+    keyCode: 173,
+    shiftKey: false
+}, {
+    id: "one",
+    className: "button-left",
+    value: "1",
+    onClick: "number",
+    keyCode: 49,
+    shiftKey: false
+}, {
+    id: "two",
+    className: "button-left",
+    value: "2",
+    onClick: "number",
+    keyCode: 50,
+    shiftKey: false
+}, {
+    id: "three",
+    className: "button-left",
+    value: "3",
+    onClick: "number",
+    keyCode: 51,
+    shiftKey: false
+}, {
+    id: "add",
+    className: "button-right",
+    value: "+",
+    onClick: "operator1",
+    keyCode: 61,
+    shiftKey: true
+}, {
+    id: "zero",
+    className: "button-left",
+    value: "0",
+    onClick: "number",
+    keyCode: 48,
+    shiftKey: false
+}, {
+    id: "decimal",
+    className: "button-left",
+    value: ".",
+    onClick: "decimal",
+    keyCode: 190,
+    shiftKey: false
+}, {
+    id: "equals",
+    className: "button-right",
+    value: "=",
+    onClick: "equals",
+    keyCode: 13,
+    shiftKey: false
+}];
 
 class Calculator extends React.Component {
     constructor(props) {
@@ -30,10 +165,8 @@ class Calculator extends React.Component {
     }
 
     evaluateMath(expr) {
-        console.log(expr);
         // Replace math symbols with JavaScript math operators, where necessary
         expr = String(expr).replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-").replace('∞', 'Infinity').replace(/[\u200B]/g, '');
-        console.log(expr);
         // Evaluate and round result
         let result = Math.round(1000000000000 * eval(expr)) / 1000000000000;
         result = result.toPrecision(MaxSignificantDigits);
@@ -119,7 +252,7 @@ class Calculator extends React.Component {
             this.setState({
                 currentFormula:
                     String(this.state.currentValue)[0] === '-' ?
-                        currentFormula + '(' + this.state.currentValue + ')' + '\u200b' + e.target.value + '\u200b' :
+                        currentFormula + '(' + this.state.currentValue + ')\u200b' + e.target.value + '\u200b' :
                         currentFormula + this.state.currentValue + '\u200b' + e.target.value + '\u200b',
                 currentValue:
                     ''
@@ -168,7 +301,7 @@ class Calculator extends React.Component {
             let result = this.evaluateMath(formula);
             this.setState({
                 currentValue: result,
-                currentFormula: formula + '\u200b' + '=' + '\u200b'
+                currentFormula: formula + '\u200b=\u200b'
             });
         }
     }
@@ -180,7 +313,7 @@ class Calculator extends React.Component {
         this.state.currentValue === '' ?
             displayValue = '0' :
             displayValue = this.state.currentValue;
-        // Display negative numbers in paranthese in formula screen for clarity
+        // Display negative numbers in parantheses in formula screen for clarity
         String(this.state.currentValue)[0] === '-' ?
             displayFormula = this.state.currentFormula + '(' + this.state.currentValue + ')' :
             displayFormula = this.state.currentFormula + this.state.currentValue;
@@ -240,7 +373,7 @@ class Buttons extends React.Component {
                     value={buttonArray[i].value}
                     onClick={this.props[buttonArray[i].onClick]}
                     keyCode={buttonArray[i].keyCode}
-                    display={buttonArray[i].display}
+                    shiftKey={buttonArray[i].shiftKey}
                     clear={this.props.clear}
                     number={this.props.number}
                     decimal={this.props.decimal}
@@ -251,27 +384,7 @@ class Buttons extends React.Component {
         });
         return (
             <div className="buttons">
-                <button id="clear" className="button-left" value="AC" onClick={this.props.clear}>AC</button>
-                <button id="plus-minus" className="button-left" value="±" onClick={this.props.operator2}>⁺∕₋</button>
-                <button id="percentage" className="button-left" value="%" onClick={this.props.operator2}>%</button>
-                <button id="divide" className="button-right" value="÷" onClick={this.props.operator1}>÷</button>
-                <button id="seven" className="button-left" value="7" onClick={this.props.number}>7</button>
-                <button id="eight" className="button-left" value="8" onClick={this.props.number}>8</button>
-                <button id="nine" className="button-left" value="9" onClick={this.props.number}>9</button>
-                <button id="multiply" className="button-right" value="×" onClick={this.props.operator1}>×</button>
-                <button id="four" className="button-left" value="4" onClick={this.props.number}>4</button>
-                <button id="five" className="button-left" value="5" onClick={this.props.number}>5</button>
-                <button id="six" className="button-left" value="6" onClick={this.props.number}>6</button>
-
                 {buttons}
-                <button id="two" className="button-left" value="2" onClick={this.props.number}>2</button>
-                <button id="three" className="button-left" value="3" onClick={this.props.number}>3</button>
-                <button id="add" className="button-right" value="+" onClick={this.props.operator1}>+</button>
-                <button id="zero" className="button-left" value="0" onClick={this.props.number}>
-                    <div id="zero-label">0</div>
-                </button>
-                <button id="decimal" className="button-left" value="." onClick={this.props.decimal}>.</button>
-                <button id="equals" className="button-right" value="=" onClick={this.props.equals}>=</button>
             </div>
         );
     }
@@ -289,40 +402,21 @@ class Button extends React.Component {
         document.removeEventListener('keydown', this.handleKeyPress);
     }
     handleKeyPress(e) {
-        console.log(e.keyCode);
-        if (e.keyCode === this.props.keyCode) {
+        if (e.keyCode === this.props.keyCode && e.shiftKey === this.props.shiftKey) {
             e.target.value = document.getElementById(this.props.id).value;
             this.props.onClick(e);
         }
     }
     render() {
+        let display = this.props.value;
+        if (display === "±") { display = "⁺∕₋" }
         return (
             <button id={this.props.id}
                 className={this.props.className}
                 value={this.props.value}
-                onClick={this.props.onClick}
-            >{this.props.display}</button>
+                onClick={this.props.onClick} >{display}</button>
         )
     }
 }
-
-const buttonData = [{
-    id: "subtract",
-    className: "button-right",
-    value: "−",
-    onClick: "operator1",
-    keyCode: 173,
-    display: "−"
-}, {
-    id: "one",
-    className: "button-left",
-    value: "1",
-    onClick: "number",
-    keyCode: 49,
-    display: "1"
-}
-];
-// <button id="subtract" className="button-right" value="−" onClick={this.props.operator1}>−</button>
-// <button id="one" className="button-left" value="1" onClick={this.props.number}>1</button>
 
 export default Calculator;
