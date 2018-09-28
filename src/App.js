@@ -240,7 +240,13 @@ class Buttons extends React.Component {
                     value={buttonArray[i].value}
                     onClick={this.props[buttonArray[i].onClick]}
                     keyCode={buttonArray[i].keyCode}
-                    display={buttonArray[i].display} />
+                    display={buttonArray[i].display}
+                    clear={this.props.clear}
+                    number={this.props.number}
+                    decimal={this.props.decimal}
+                    operator1={this.props.operator1}
+                    operator2={this.props.operator2}
+                    equals={this.props.equals} />
             )
         });
         return (
@@ -256,7 +262,7 @@ class Buttons extends React.Component {
                 <button id="four" className="button-left" value="4" onClick={this.props.number}>4</button>
                 <button id="five" className="button-left" value="5" onClick={this.props.number}>5</button>
                 <button id="six" className="button-left" value="6" onClick={this.props.number}>6</button>
-                <button id="subtract" className="button-right" value="−" onClick={this.props.operator1}>−</button>
+
                 {buttons}
                 <button id="two" className="button-left" value="2" onClick={this.props.number}>2</button>
                 <button id="three" className="button-left" value="3" onClick={this.props.number}>3</button>
@@ -274,8 +280,6 @@ class Buttons extends React.Component {
 class Button extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-        }
         this.handleKeyPress = this.handleKeyPress.bind(this);
     }
     componentDidMount() {
@@ -285,8 +289,10 @@ class Button extends React.Component {
         document.removeEventListener('keydown', this.handleKeyPress);
     }
     handleKeyPress(e) {
+        console.log(e.keyCode);
         if (e.keyCode === this.props.keyCode) {
-            console.log(e.keyCode);
+            e.target.value = document.getElementById(this.props.id).value;
+            this.props.onClick(e);
         }
     }
     render() {
@@ -295,21 +301,28 @@ class Button extends React.Component {
                 className={this.props.className}
                 value={this.props.value}
                 onClick={this.props.onClick}
-                keyCode={this.props.keyCode}
             >{this.props.display}</button>
         )
     }
 }
 
 const buttonData = [{
+    id: "subtract",
+    className: "button-right",
+    value: "−",
+    onClick: "operator1",
+    keyCode: 173,
+    display: "−"
+}, {
     id: "one",
     className: "button-left",
     value: "1",
     onClick: "number",
-    keyCode: 2,
+    keyCode: 49,
     display: "1"
 }
 ];
+// <button id="subtract" className="button-right" value="−" onClick={this.props.operator1}>−</button>
 // <button id="one" className="button-left" value="1" onClick={this.props.number}>1</button>
 
 export default Calculator;
