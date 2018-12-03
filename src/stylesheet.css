@@ -1,8 +1,12 @@
+@font-face {
+  font-family: "dejavu_sansextralight";
+  src: url("fonts/DejaVuSans-ExtraLight-webfont.woff") format("woff"); }
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: sans-serif;
+  font-family: "dejavu_sansextralight", sans-serif;
   font-weight: 100; }
 
 #root {
@@ -14,7 +18,7 @@
 
 .calculator {
   width: 320px;
-  height: 520px;
+  height: 521px;
   display: grid;
   grid-template-rows: 1.5fr 5fr;
   grid-template-areas: "screen" "buttons"; }
@@ -25,7 +29,7 @@
     grid-area: screen;
     text-align: right;
     color: white;
-    background-color: #34516E;
+    background-color: #34516e;
     border: none;
     display: grid;
     grid-template-rows: auto 80px;
@@ -48,11 +52,11 @@
           border-radius: 50%;
           margin-right: 8px; }
         .calculator .screen #upper-screen .title-bar-buttons #red-button {
-          background-color: #FF5651; }
+          background-color: #ff5651; }
         .calculator .screen #upper-screen .title-bar-buttons #yellow-button {
-          background-color: #FFBF3B; }
+          background-color: #ffbf3b; }
         .calculator .screen #upper-screen .title-bar-buttons #green-button {
-          background-color: #1AD44C; }
+          background-color: #1ad44c; }
       .calculator .screen #upper-screen #formula-display {
         display: block;
         padding-right: 10px;
@@ -69,7 +73,7 @@
       .calculator .screen #display .scaletext-wrapper {
         display: flex;
         align-items: center;
-        justify-content: right; }
+        justify-content: flex-end; }
   .calculator .buttons {
     border: 1px solid #979797;
     border-bottom-left-radius: 5px;
@@ -86,17 +90,18 @@
       color: black;
       font-size: 35px; }
     .calculator .buttons .button-left {
-      background-color: #DFDFDF;
+      background-color: #dfdfdf;
       border-left: none; }
     .calculator .buttons .button-right {
-      background-color: #FA9039;
+      background-color: #fa9039;
       color: white;
       border-left: none;
       border-right: none; }
     .calculator .buttons #zero {
       grid-area: zero;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      padding-left: 28px;
+      text-align: left;
+      vertical-align: middle;
       border-bottom-left-radius: 4px; }
     .calculator .buttons #equals {
       border-bottom-right-radius: 4px; }
